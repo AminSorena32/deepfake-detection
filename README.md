@@ -157,10 +157,5 @@ Use the notebooks in the `notebooks/` directory to follow the complete workflow 
 * Explore video-level deepfake detection instead of frame-level classification.
 * Optimize training and inference performance.
 
-## License
-
-This project is licensed under the **MIT License**.
-
-See the [LICENSE](LICENSE) file for details.
 
 
