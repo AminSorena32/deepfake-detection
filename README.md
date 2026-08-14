@@ -12,102 +12,33 @@ The project also includes a complete evaluation pipeline for analyzing model per
 
 The main goal of this project is to explore a practical deep learning pipeline for deepfake detection while maintaining a clean and reproducible project structure.
 
-## Features
-
-* **Video Frame Extraction** — Extracts representative frames from input videos for further processing.
-* **Face Detection** — Detects and extracts faces from video frames using OpenCV YuNet.
-* **Face Preprocessing** — Applies face cropping, padding, resizing, and image preprocessing to prepare the data for model training.
-* **Transfer Learning** — Uses an ImageNet-pretrained EfficientNetB0 as the backbone for deepfake classification.
-* **Fine-Tuning** — Fine-tunes selected layers of the pretrained backbone on the target deepfake dataset.
-* **Binary Classification** — Classifies facial images into two categories: **Real** and **Fake**.
-* **Model Evaluation** — Evaluates the trained model using Accuracy, Loss, Precision, Recall, F1-score, ROC-AUC, and Confusion Matrix.
-* **Training Visualization** — Provides training and validation curves to analyze model learning and potential overfitting.
-* **Modular Project Structure** — Separates data processing, model development, training, evaluation, and results into dedicated components.
-
-## Project Architecture
-The project follows a modular end-to-end pipeline for deepfake detection:
+## Pipeline
 
 ```text
-Input Videos
-     │
-     ▼
+Videos
+   ↓
 Frame Extraction
-     │
-     ▼
+   ↓
 Face Detection (YuNet)
-     │
-     ▼
-Face Cropping & Padding
-     │
-     ▼
-Image Preprocessing
-     │
-     ▼
+   ↓
+Face Cropping & Preprocessing
+   ↓
 EfficientNetB0
-(ImageNet Pretrained)
-     │
-     ├── Transfer Learning
-     │
-     ▼
+   ↓
+Transfer Learning
+   ↓
 Fine-Tuning
-     │
-     ▼
-Binary Classification
-     │
-     ├── Real
-     └── Fake
-     │
-     ▼
-Model Evaluation
-     │
-     ├── Accuracy
-     ├── Loss
-     ├── Precision
-     ├── Recall
-     ├── F1-Score
-     ├── ROC-AUC
-     └── Confusion Matrix
+   ↓
+Real / Fake
+   ↓
+Evaluation
 ```
 
-### Pipeline Overview
-
-1. **Frame Extraction**
-   Frames are extracted from the input videos to create image samples for the detection pipeline.
-
-2. **Face Detection**
-   Faces are detected from the extracted frames using **OpenCV YuNet**.
-
-3. **Face Cropping & Padding**
-   Detected face regions are cropped and padded to preserve relevant facial context before classification.
-
-4. **Image Preprocessing**
-   The processed faces are resized and prepared for input into the EfficientNetB0 model.
-
-5. **Transfer Learning**
-   An **ImageNet-pretrained EfficientNetB0** is used as the feature extraction backbone while its pretrained layers are initially frozen.
-
-6. **Fine-Tuning**
-   Selected layers of the backbone are unfrozen and trained with a lower learning rate to adapt the pretrained features to the deepfake detection task.
-
-7. **Binary Classification**
-   The model predicts whether each input face belongs to the **Real** or **Fake** class.
-
-8. **Evaluation**
-   The final model is evaluated using multiple classification metrics and visualization tools to provide a more complete assessment of its performance.
-
+The pipeline extracts **5 frames per video**, detects and preprocesses faces using **YuNet**, and classifies them using an **ImageNet-pretrained EfficientNetB0** model.
 
 ## Dataset
 
-This project uses the **FaceForensics-1000** dataset available on Kaggle for training and evaluating the deepfake detection model.
-
-### Dataset Overview
-
-A total of **2,000 videos** were used in this project:
-
-* **1,000 Real videos**
-* **1,000 Fake videos**
-
-This provides a balanced dataset with an equal number of real and manipulated videos.
+The project uses the **FaceForensics-1000** dataset with **2,000 videos**:
 
 | Class     |    Videos |
 | --------- | --------: |
@@ -115,171 +46,121 @@ This provides a balanced dataset with an equal number of real and manipulated vi
 | Fake      |     1,000 |
 | **Total** | **2,000** |
 
-### Frame Extraction
+* **5 frames** are extracted from each video → **10,000 frames**
+* Data is split into **Training, Validation, and Test** sets.
+* The test set is kept separate for final evaluation.
 
-To convert the video dataset into image samples suitable for the deep learning pipeline, **5 frames were extracted from each video**.
+**Dataset:** [FaceForensics-1000 — Kaggle](https://www.kaggle.com/datasets/rohingarg12/faceforensics-1000?utm_source=chatgpt.com)
 
-Therefore, the initial frame dataset contains:
+## Model
 
-**2,000 videos × 5 frames = 10,000 frames**
+The project uses **EfficientNetB0** with **ImageNet-pretrained weights** for binary classification.
 
-These frames are subsequently passed through the face detection and preprocessing pipeline before being used for model training.
-
-```text
-2,000 Videos
-      │
-      │ 5 frames per video
-      ▼
-10,000 Extracted Frames
-      │
-      ▼
-Face Detection (YuNet)
-      │
-      ▼
-Face Cropping & Padding
-      │
-      ▼
-Preprocessed Face Images
-```
-
-### Train, Validation, and Test Split
-
-The dataset is divided into **training, validation, and testing subsets**.
-
-The original video samples are separated before the extracted frames are used for model training. This is important because frames originating from the same video should not appear in different splits.
-
-The dataset is organized into:
-
-| Split          | Purpose                                                                     |
-| -------------- | --------------------------------------------------------------------------- |
-| **Training**   | Used to train the deepfake detection model                                  |
-| **Validation** | Used to monitor model performance during training and guide model selection |
-| **Test**       | Used exclusively for final evaluation on unseen data                        |
-
-The training dataset is further divided into training and validation subsets, while the test set remains isolated until the final evaluation stage.
-
-### Dataset Classes
-
-The dataset contains two balanced classes:
-
-* **Real** — Original, non-manipulated video content.
-* **Fake** — Video content containing manipulated facial regions.
-
-### Face-Based Dataset
-
-The classification model does not directly process complete video frames. Instead, facial regions are extracted from the frames and used as the model input.
-
-The preprocessing pipeline consists of:
-
-1. Extracting frames from videos.
-2. Detecting faces using **OpenCV YuNet**.
-3. Cropping the detected facial regions.
-4. Applying padding around the detected face.
-5. Resizing the resulting face images.
-6. Preparing the images for the EfficientNetB0 model.
-
-### Dataset Source
-
-The dataset used in this project is available on Kaggle:
-
-[FaceForensics-1000 — Kaggle Dataset](https://www.kaggle.com/datasets/rohingarg12/faceforensics-1000?utm_source=chatgpt.com)
-
-> **Note:** The dataset is used for research and educational purposes. Please refer to the dataset provider's terms and licensing conditions before redistributing or using the dataset for other purposes.
-
-## Data Pipeline
-
-The project uses a modular data processing pipeline to transform raw videos into normalized facial images suitable for deep learning.
-
-The complete pipeline is:
-
-```text id="qz8k2p"
-Raw Videos
-    │
-    ▼
-Frame Extraction
-    │
-    ▼
-Extracted Frames
-    │
-    ▼
-Face Detection (YuNet)
-    │
-    ▼
-Face Cropping & Padding
-    │
-    ▼
-Processed Face Images
-    │
-    ▼
-Train / Validation / Test
-    │
-    ▼
-TensorFlow Data Pipeline
-    │
-    ▼
+```text id="jz4n8s"
+Input (224×224×3)
+       ↓
 EfficientNetB0
+       ↓
+Custom Classification Head
+       ↓
+Sigmoid Output
+       ↓
+Real / Fake
 ```
 
-### 1. Frame Extraction
+* **Transfer Learning** with a frozen pretrained backbone
+* **Fine-Tuning** of selected EfficientNetB0 layers
+* **Binary Cross-Entropy** loss
+* **Adam** optimizer
 
-Five frames are extracted from each video, resulting in an initial dataset of **10,000 frames from 2,000 videos**.
+## Training
 
-The extracted frames are stored separately from the original video files and serve as the input to the face detection stage.
+The model is trained in two stages:
 
-### 2. Face Detection
+1. **Transfer Learning** — The pretrained EfficientNetB0 backbone is frozen and the classification head is trained.
+2. **Fine-Tuning** — Selected layers of the backbone are unfrozen and trained to adapt the model to the deepfake detection task.
 
-Faces are detected from the extracted frames using **OpenCV YuNet**, a lightweight face detection model designed for efficient face localization.
+### Main Configuration
 
-For each frame, the detected face with the highest confidence score is selected as the primary face region.
+* **Input Size:** 224 × 224
+* **Batch Size:** 32
+* **Optimizer:** Adam
+* **Loss:** Binary Cross-Entropy
+* **Framework:** TensorFlow / Keras
 
-### 3. Face Cropping and Padding
+## Results
 
-After detecting the face, the corresponding bounding box is extracted from the frame.
+The final model was evaluated on the held-out test set using standard classification metrics.
 
-Additional padding is applied around the detected face to preserve useful facial context that may exist outside the original bounding box.
+| Metric    |      Score |
+| --------- | ---------: |
+| Accuracy  | **66.25%** |
+| Precision | **65.09%** |
+| Recall    | **70.10%** |
+| F1-Score  | **67.50%** |
+| ROC-AUC   | **72.16%** |
 
-The resulting region is then resized to the input resolution required by EfficientNetB0.
+The model achieves a **66.25% test accuracy** with a **ROC-AUC of 72.16%**, providing a baseline for further improvements in deepfake detection.
 
-### 4. Dataset Organization
+## Project Structure
 
-The processed facial images are organized according to their class labels:
-
-```text id="gk0xfr"
-processed/
-├── real/
-│   ├── ...
-│   └── ...
-└── fake/
-    ├── ...
-    └── ...
+```text id="c7k2p1"
+DeepFake-Detection/
+├── models/
+├── notebooks/
+├── results/
+├── src/
+│   ├── data/
+│   ├── models/
+│   ├── training/
+│   └── evaluation/
+├── .gitignore
+├── requirements.txt
+└── README.md
 ```
 
-The resulting samples are then separated into training, validation, and test datasets.
+The project is organized into separate modules for **data processing, model development, training, evaluation, and results**.
 
-### 5. TensorFlow Data Pipeline
+## Installation & Usage
 
-The processed images are loaded using **TensorFlow's `tf.data` API**.
+### 1. Clone the Repository
 
-The pipeline performs operations such as:
-
-* Reading image files
-* JPEG decoding
-* Image preprocessing
-* Label assignment
-* Batching
-* Prefetching
-
-A batch size of **32** is used during training and evaluation.
-
-Prefetching with `AUTOTUNE` is also used to improve the efficiency of data loading during model training.
-
-### 6. Model Input
-
-The final processed face images are resized to:
-
-```text id="uknyxm"
-224 × 224 × 3
+```bash
+git clone https://github.com/<your-username>/DeepFake-Detection.git
+cd DeepFake-Detection
 ```
 
-These images are then passed to the EfficientNetB0 backbone for feature extraction and binary classification.
+### 2. Create a Virtual Environment
+
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run the Pipeline
+
+Use the notebooks in the `notebooks/` directory to follow the complete workflow from **data preprocessing to model evaluation**.
+
+> The dataset is not included in the repository. Download it from the Kaggle link provided in the **Dataset** section.
+
+## Future Improvements
+
+* Improve face preprocessing and detection quality.
+* Experiment with stronger CNN and transformer-based architectures.
+* Increase dataset diversity and size.
+* Explore video-level deepfake detection instead of frame-level classification.
+* Optimize training and inference performance.
+
+## License
+
+This project is licensed under the **MIT License**.
+
+See the [LICENSE](LICENSE) file for details.
+
 
